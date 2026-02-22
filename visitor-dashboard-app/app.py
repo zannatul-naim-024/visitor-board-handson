@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 # Config: same env vars for AWS or local (DynamoDB Local via DYNAMODB_ENDPOINT_URL)
 TABLE = os.environ.get("TABLE_NAME", "workshop_messages")
-REGION = os.environ.get("AWS_REGION", "us-east-1")
+REGION = os.environ.get("AWS_REGION", "eu-north-1")
 INSTANCE_ID = os.environ.get("INSTANCE_ID", os.uname().nodename)
 DYNAMODB_ENDPOINT = os.environ.get("DYNAMODB_ENDPOINT_URL")  # e.g. http://localhost:8000 for local
 

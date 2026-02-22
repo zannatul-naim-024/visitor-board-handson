@@ -9,7 +9,7 @@ import sys
 import boto3
 
 TABLE = os.environ.get("TABLE_NAME", "workshop_messages")
-REGION = os.environ.get("AWS_REGION", "us-east-1")
+REGION = os.environ.get("AWS_REGION", "eu-north-1")
 ENDPOINT = os.environ.get("DYNAMODB_ENDPOINT_URL")
 
 kwargs = {"region_name": REGION}

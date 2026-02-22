@@ -74,22 +74,21 @@
 1. **SSH in**
    ```bash
    chmod 400 ~/path/to/your-key.pem
-   ssh -i ~/path/to/your-key.pem ubuntu@<PUBLIC_IP>
+   ssh -i ~/path/to/your-key.pem ec2-user@<PUBLIC_IP>
    ```
-   (Use `ec2-user` for Amazon Linux.)
 
-2. **Deploy the app (Visitor Board)**
+2. **Deploy the app (Visitor Board)** (Amazon Linux)
    ```bash
-   sudo apt update
-   sudo apt install -y python3 python3-pip python3-venv git
-   git clone https://github.com/your-repo/aws-handson-01.git
-   cd aws-handson-01/dummy-app
+   sudo dnf install -y python3 python3-pip git
+   git clone https://github.com/zannatul-naim-024/visitor-board-handson.git
+   cd aws-handson-01/visitor-dashboard-app
    python3 -m venv .venv && source .venv/bin/activate
    pip install -r requirements.txt
    export TABLE_NAME=workshop_messages
-   export AWS_REGION=us-east-1
+   export AWS_REGION=eu-north-1
    python3 app.py &
    ```
+   (Amazon Linux 2023 uses `dnf`; for Amazon Linux 2 use `yum` instead of `dnf`.)
 
 3. **Verify**
    ```bash
