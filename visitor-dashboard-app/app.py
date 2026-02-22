@@ -85,8 +85,12 @@ def post_message():
 
 @app.route("/health")
 def health():
-    """For ALB/ASG health checks; no dependency on data tier."""
-    return {"ok": True, "instanceId": INSTANCE_ID}
+    """Health check: verifies DynamoDB is reachable. Returns 503 if DynamoDB is down."""
+    try:
+        dynamo.meta.client.describe_table(TableName=TABLE)
+    except Exception as e:
+        return {"ok": False, "instanceId": INSTANCE_ID, "dynamodb": "down", "error": str(e)}, 503
+    return {"ok": True, "instanceId": INSTANCE_ID, "dynamodb": "live"}
 
 
 if __name__ == "__main__":
