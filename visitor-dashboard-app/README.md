@@ -117,11 +117,20 @@ aws dynamodb scan --table-name workshop_messages --region eu-north-1
 1. **DynamoDB** — Table `workshop_messages`, partition key `id` (String). Use CLI or console (see “Run with AWS DynamoDB” above).
 2. **IAM** — For local: `aws configure` or env vars. For EC2: see **EC2: IAM instance profile** below.
 
-### EC2: IAM instance profile (fix "Unable to locate credentials")
+### EC2: IAM policy and role attachment (fix "Unable to locate credentials")
 
-On EC2, boto3 gets credentials from the **instance profile** (IAM role attached to the instance). If you see `Unable to locate credentials`, attach a role that has DynamoDB access.
+On EC2, the app gets AWS credentials from an **instance profile**: an IAM role attached to the instance. No access keys on the box; the instance calls the metadata service and receives temporary credentials for that role. If you see `Unable to locate credentials`, the instance has no role attached.
 
-**1. Create an IAM policy** (e.g. name: `WorkshopVisitorBoardDynamoDB`):
+You need two things: an **IAM policy** (what API calls are allowed) and an **IAM role** (who can use that permission). The role is then **attached to the EC2 instance** so the app running on it can call DynamoDB.
+
+---
+
+#### 1. Create an IAM policy (the permissions)
+
+A **policy** is a JSON document that says *“allow these actions on these resources.”* It does not say *who* gets them; a role (or user) is given the policy later.
+
+- Go to **IAM → Policies → Create policy**.
+- Choose **JSON** and paste:
 
 ```json
 {
@@ -141,27 +150,52 @@ On EC2, boto3 gets credentials from the **instance profile** (IAM role attached 
 }
 ```
 
-(Region in the ARN is eu-north-1; or use `arn:aws:dynamodb:*:*:table/workshop_messages` for any region.)
+- **Resource** limits the policy to the `workshop_messages` table in `eu-north-1`. Use your account’s region; or `arn:aws:dynamodb:*:*:table/workshop_messages` for any region.
+- **Next** → name the policy (e.g. `WorkshopVisitorBoardDynamoDB`) → **Create policy**.
 
-**2. Create an IAM role** for EC2:
+---
 
-- **Trust policy:** allow `ec2.amazonaws.com` to assume the role.
-- **Permissions:** attach the policy above.
+#### 2. Create an IAM role (the identity that gets those permissions)
 
-**3. Attach the role to the instance:**
+A **role** is an identity that can be *assumed* by a service (here, EC2). The role has no long‑term password; it’s used when EC2 “assumes” it and gets temporary credentials. You attach the policy you created to this role.
 
-- **EC2 → Instances** → select the instance → **Actions** → **Security** → **Modify IAM role** → choose the role → **Update IAM role**.
+- Go to **IAM → Roles → Create role**.
+- **Trusted entity type:** AWS service.
+- **Use case:** EC2 (so the role can be assumed by EC2). Click **Next**.
+- **Trust policy** will show something like:
+  ```json
+  "Principal": { "Service": "ec2.amazonaws.com" }
+  ```
+  That means “only the EC2 service can assume this role.” Leave it as is.
+- On **Add permissions**, search for the policy you created (e.g. `WorkshopVisitorBoardDynamoDB`), select it, **Next**.
+- **Role name:** e.g. `WorkshopVisitorBoardRole` → **Create role**.
 
-**4. Retry on the instance** (no reboot needed):
+---
+
+#### 3. Attach the role to the EC2 instance (instance profile)
+
+Attaching the role to an instance creates an **instance profile** for that instance. From then on, any process on the instance can request temporary credentials from the instance metadata service; those credentials have the permissions of the role.
+
+- Go to **EC2 → Instances**.
+- Select your instance → **Actions** → **Security** → **Modify IAM role**.
+- Choose the role you created (e.g. `WorkshopVisitorBoardRole`) → **Update IAM role**.
+
+No reboot needed. After a few seconds, the instance can use the new role.
+
+---
+
+#### 4. Run the app on the instance
+
+On the instance, you do **not** run `aws configure` or set access keys. Just set app env vars and run:
 
 ```bash
 export TABLE_NAME=workshop_messages
 export AWS_REGION=eu-north-1
-python create_table.py
-python app.py
+python3 create_table.py
+python3 app.py
 ```
 
-Credentials are provided automatically via instance metadata; no `aws configure` on the box.
+Boto3 will automatically use the instance profile credentials from the metadata service.
 
 ---
 
