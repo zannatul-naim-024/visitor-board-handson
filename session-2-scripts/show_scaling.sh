@@ -6,12 +6,22 @@
 #    or: ./show_scaling.sh <ALB_BASE_URL> [interval_seconds]
 
 set -e
+SAVE_ALB_URL="${ALB_URL:-}"
 ALB_URL="${ALB_URL:-$1}"
-INTERVAL="${2:-1}"
 if [[ -z "$ALB_URL" ]]; then
   echo "Usage: ALB_URL=http://<alb-dns> $0 [interval_seconds]" >&2
   echo "   or: $0 <ALB_BASE_URL> [interval_seconds]" >&2
   exit 1
+fi
+# When ALB_URL came from env, $1 is interval; otherwise $1 is URL, $2 is interval
+if [[ -n "$SAVE_ALB_URL" ]]; then
+  INTERVAL="${1:-1}"
+else
+  INTERVAL="${2:-1}"
+fi
+# Ensure URL has a scheme so curl works
+if [[ "$ALB_URL" != http://* && "$ALB_URL" != https://* ]]; then
+  ALB_URL="http://${ALB_URL}"
 fi
 
 echo "Watching which instance serves each request (refresh every ${INTERVAL}s). Press Ctrl+C to stop."
