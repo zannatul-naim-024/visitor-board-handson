@@ -1,0 +1,22 @@
+flowchart TB
+  subgraph clients[" "]
+    Internet["Internet / Clients"]
+  end
+
+  ALB["ALB :80\n(single DNS name)"]
+
+  subgraph ASG["ASG: min 1, desired 2, max 10"]
+    EC2a["EC2\nVisitor Board"]
+    EC2b["EC2\nVisitor Board"]
+    EC2c["EC2\nVisitor Board"]
+  end
+
+  DynamoDB[("DynamoDB\n(messages)")]
+
+  Internet --> ALB
+  ALB --> EC2a
+  ALB --> EC2b
+  ALB --> EC2c
+  EC2a --> DynamoDB
+  EC2b --> DynamoDB
+  EC2c --> DynamoDB

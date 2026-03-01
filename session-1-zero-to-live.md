@@ -81,7 +81,7 @@
    ```bash
    sudo dnf install -y python3 python3-pip git
    git clone https://github.com/zannatul-naim-024/visitor-board-handson.git
-   cd aws-handson-01/visitor-dashboard-app
+   cd visitor-board-handson/visitor-dashboard-app
    python3 -m venv .venv && source .venv/bin/activate
    pip install -r requirements.txt
    export TABLE_NAME=workshop_messages

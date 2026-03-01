@@ -13,3 +13,10 @@ git clone https://github.com/zannatul-naim-024/visitor-board-handson.git
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+
+
+
+# see the cloud logs
+cat /var/log/visitor-app.log
+# user data script 
+cat /var/log/cloud-init-output.log

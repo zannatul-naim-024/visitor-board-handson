@@ -1,0 +1,35 @@
+flowchart TB
+  subgraph S1["Session 1 — Single node"]
+    direction TB
+    C1["1. EC2 Instance\n(workshop-web-01, t3.micro)"]
+    C2["2. Security Group\n(SSH from My IP, HTTP :80/:3000)"]
+    C3["3. DynamoDB Table\n(workshop_messages)"]
+    C4["4. IAM Role + Policy\n(DynamoDB access for EC2)"]
+    C5["5. App on EC2\n(Visitor Board, user data later)"]
+    C1 --> C2 --> C3 --> C4 --> C5
+  end
+
+  subgraph S2["Session 2 — Scaling"]
+    direction TB
+    C6["6. Application Load Balancer\n(workshop-alb, HTTP :80)"]
+    C7["7. Target Group\n(workshop-tg, port 3000, /health)"]
+    C8["8. ALB Listener\n(80 → workshop-tg)"]
+    C9["9. Launch Template\n(base AMI + user data)"]
+    C10["10. Auto Scaling Group\n(workshop-asg, min 1 max 10)"]
+    C11["11. Scaling Policy\n(target tracking CPU 50%)"]
+    C6 --> C7 --> C8 --> C9 --> C10 --> C11
+  end
+
+  S1 --> S2
+
+  style C1 fill:#ffec99
+  style C2 fill:#ffec99
+  style C3 fill:#d0bfff
+  style C4 fill:#ffd8a8
+  style C5 fill:#ffec99
+  style C6 fill:#b2f2bb
+  style C7 fill:#b2f2bb
+  style C8 fill:#b2f2bb
+  style C9 fill:#ffec99
+  style C10 fill:#ffec99
+  style C11 fill:#b2f2bb
