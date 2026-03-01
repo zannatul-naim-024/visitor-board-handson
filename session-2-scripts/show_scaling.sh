@@ -24,16 +24,32 @@ if [[ "$ALB_URL" != http://* && "$ALB_URL" != https://* ]]; then
   ALB_URL="http://${ALB_URL}"
 fi
 
-echo "Watching which instance serves each request (refresh every ${INTERVAL}s). Press Ctrl+C to stop."
-echo "ALB: $ALB_URL"
-echo "---"
+# instance -> "count|last_seen"
+declare -A SEEN
 
 while true; do
   INSTANCE=$(curl -sS --connect-timeout 2 "${ALB_URL}/health" 2>/dev/null | sed -n 's/.*"instanceId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-  if [[ -n "$INSTANCE" ]]; then
-    printf "%s  Instance: %s\n" "$(date +%H:%M:%S)" "$INSTANCE"
-  else
-    printf "%s  (no response or parse failed)\n" "$(date +%H:%M:%S)"
+  TS=$(date +%H:%M:%S)
+  if [[ -z "$INSTANCE" ]]; then
+    INSTANCE="(no response)"
   fi
+  if [[ -z "${SEEN[$INSTANCE]}" ]]; then
+    SEEN[$INSTANCE]="1|$TS"
+  else
+    C="${SEEN[$INSTANCE]%%|*}"; L="${SEEN[$INSTANCE]#*|}"
+    SEEN[$INSTANCE]="$((C + 1))|$TS"
+  fi
+
+  clear
+  printf "\n  ALB: %s\n" "$ALB_URL"
+  printf "  Refresh: every %ss  |  Press Ctrl+C to stop\n\n" "$INTERVAL"
+  printf "  %-25s  |  %6s  |  %-10s\n" "Instance" "Count" "Last Seen"
+  printf "  %-25s  +  %-6s  +  %-10s\n" "-------------------------" "------" "----------"
+  for inst in "${!SEEN[@]}"; do
+    C="${SEEN[$inst]%%|*}"; L="${SEEN[$inst]#*|}"
+    printf "  %-25s  |  %6s  |  %-10s\n" "$inst" "$C" "$L"
+  done | sort
+  printf "\n"
+
   sleep "$INTERVAL"
 done

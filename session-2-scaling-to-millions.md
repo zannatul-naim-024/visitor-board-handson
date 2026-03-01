@@ -103,6 +103,16 @@
 6. **Create ASG**  
    Wait until 2 instances are **InService** and **Healthy** in the target group.
 
+7. **Optional — reduce scale-in delay**  
+   After load drops, the ASG may take **5–15 minutes** to scale in. That’s because:
+   - **Default cooldown** is 300 seconds (5 min) so the group doesn’t flap.
+   - **Target tracking** scales in gradually to prioritize availability.
+   - With an ALB, **connection draining** (deregistration) is 300 seconds by default, and scale-in cooldown can start after that.
+   To make scale-in **faster** (e.g. for demos):
+   - **ASG → Details → Advanced configurations → Edit:** set **Default cooldown** to **60** or **120** seconds (instead of 300).
+   - **EC2 → Target Groups → workshop-tg → Attributes:** set **Deregistration delay** to **30** or **60** seconds so instances leave the pool sooner.  
+   *Trade-off: shorter cooldown/drain can cause more scaling churn if load is bursty.*
+
 ### Checkpoint
 - ASG has 2 instances; both in target group; ALB still serves the app.
 - **Design takeaway:** Compute tier is elastic; data tier (DynamoDB) is unchanged and shared by all instances.
